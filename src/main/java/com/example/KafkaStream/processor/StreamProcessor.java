@@ -1,0 +1,29 @@
+package com.example.KafkaStream.processor;
+
+
+import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.streams.StreamsBuilder;
+import org.apache.kafka.streams.kstream.Consumed;
+import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.Produced;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+
+@Component
+@Slf4j
+public class StreamProcessor {
+    @Autowired
+    private StreamsBuilder streamsBuilder;
+
+    @PostConstruct
+    public void streamTopology(){
+        KStream<String, String> kStream = streamsBuilder.stream("billingTopic1", Consumed.with(Serdes.String(), Serdes.String()));
+        kStream.filter((key, value) -> value.startsWith("Bill"))
+                .mapValues((k, v) -> v.toUpperCase()).peek((k, v) -> System.out.println("Key : " + k + " Value : " + v))
+                .to("outputStream1", Produced.with(Serdes.String(), Serdes.String()));
+
+    }
+}
